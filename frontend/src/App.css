@@ -97,10 +97,29 @@ button:disabled { opacity: .5; cursor: default; }
 }
 
 /* 답변 아래의 참고 파일명 스타일 */
-.sources {
+.message-sources {
   display: block;
   margin-top: 7px;
   color: #597287;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* 문서 소스 사이드바와 대화 영역 배치 */
+.app {
+  width: min(1180px, calc(100% - 32px));
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 0 18px;
+}
+.header { grid-column: 1 / -1; }
+.chat { grid-column: 2; grid-row: 2; }
+.composer { grid-column: 2; grid-row: 3; }
+@media (max-width: 700px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; }
+  .header, .sources, .chat, .composer { grid-column: 1; }
+  .sources { grid-row: 2; margin-bottom: 16px; }
+  .chat { grid-row: 3; }
+  .composer { grid-row: 4; }
 }
