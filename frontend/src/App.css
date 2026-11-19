@@ -95,3 +95,12 @@ button:disabled { opacity: .5; cursor: default; }
   .message { max-width: 92%; }
   .composer { padding: 14px; }
 }
+
+/* 답변 아래의 참고 파일명 스타일 */
+.sources {
+  display: block;
+  margin-top: 7px;
+  color: #597287;
+  font-size: 13px;
+  line-height: 1.5;
+}
