@@ -1,0 +1,23 @@
+.sources {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  min-width: 0;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #dce6ec;
+  border-radius: 18px;
+}
+
+.sources h2 { margin: 0 0 8px; color: #0b3d69; font-size: 22px; }
+.sources p { color: #597287; line-height: 1.5; }
+.sources form { display: flex; flex-direction: column; gap: 10px; }
+.sources label { font-size: 14px; font-weight: 700; }
+.sources input[type='file'] { width: 100%; padding: 8px; font-size: 14px; }
+.sources button { min-height: 42px; }
+.sources .refresh { width: 100%; background: #eaf1f4; }
+.source-message { min-height: 42px; font-size: 13px; }
+.source-list { padding-left: 20px; line-height: 1.8; overflow-wrap: anywhere; }
+
+@media (max-width: 700px) {
+  .sources { grid-column: 1; grid-row: 2; }
+}

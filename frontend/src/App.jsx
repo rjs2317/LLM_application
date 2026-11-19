@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DocumentSources from './DocumentSources'
 
 const firstMessage = {
   role: 'assistant',
@@ -54,6 +55,8 @@ function App() {
         <p>수업 자료에 대해 궁금한 점을 입력해 보세요.</p>
       </header>
 
+      <DocumentSources />
+
       <section className="chat" aria-label="대화 내용">
         {messages.map((message, index) => (
           <div className={`message ${message.role}`} key={index}>
@@ -61,7 +64,7 @@ function App() {
             <p>{message.text}</p>
             {/* 참고 파일이 있을 때만 표시 */}
             {message.sources?.length > 0 && (
-            <small className="sources">
+            <small className="message-sources">
             참고 자료: {message.sources.join(", ")}
             </small>
           )}
