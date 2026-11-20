@@ -1,5 +1,7 @@
 from pathlib import Path
 
+
+
 def read_document():
    return Path("data/git_기초.txt").read_text(encoding="utf-8")
 

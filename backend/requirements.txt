@@ -2,5 +2,5 @@ fastapi
 google-genai
 python-dotenv
 uvicorn
-
+httpx
 python-multipart

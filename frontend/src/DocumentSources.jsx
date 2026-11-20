@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './DocumentSources.css'
 
 
-function DocumentSources() {
+function DocumentSources({ session }) {
   const [documents, setDocuments] = useState([])
   const [selectedFile, setSelectedFile] = useState(null)
   const [message, setMessage] = useState('')
@@ -10,19 +10,21 @@ function DocumentSources() {
 
   async function loadDocuments() {
     try {
-      const response = await fetch('/api/documents')
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const response = await fetch('/api/documents', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
       const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`)
       setDocuments(data.documents)
     } catch (error) {
       setMessage(`목록을 읽지 못했습니다: ${error.message}`)
     }
   }
 
-  // 화면이 처음 열릴 때 저장된 문서 목록을 가져옵니다.
+  // 로그인 사용자나 토큰이 바뀌면 본인 목록을 다시 읽습니다.
   useEffect(() => {
     loadDocuments()
-  }, [])
+  }, [session.access_token])
 
   async function uploadDocument(event) {
     event.preventDefault()
@@ -33,9 +35,9 @@ function DocumentSources() {
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
-      // FormData의 Content-Type은 브라우저가 자동으로 설정합니다.
       const response = await fetch('/api/documents', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
         body: formData,
       })
       const data = await response.json()
@@ -54,8 +56,8 @@ function DocumentSources() {
 
   return (
     <aside className="sources" aria-label="문서 소스">
-      <h2>문서 소스</h2>
-      <p>질문에 사용할 TXT 자료입니다.</p>
+      <h2>내 문서 소스</h2>
+      <p>승인된 로그인 계정의 TXT 자료만 보입니다.</p>
 
       <form onSubmit={uploadDocument}>
         <label htmlFor="document-file">TXT 파일 선택</label>

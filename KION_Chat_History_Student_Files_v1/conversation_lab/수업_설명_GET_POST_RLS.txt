@@ -1,0 +1,38 @@
+KION LABS | 수업 설명 메모
+주제: GET·POST의 역할과 두 사용자 계정의 문서 접근 제한
+
+[1] GET과 POST를 어떻게 설명할까
+GET은 주로 서버에 이미 있는 자료를 조회할 때 사용합니다. 이 앱의 GET /api/documents는 문서 목록을 읽습니다. 백엔드는 Supabase의 llm.documents에서 문서 행을 조회합니다.
+
+POST는 서버에 데이터를 제출하거나 처리를 요청할 때 사용합니다. POST /api/documents는 TXT 파일의 내용을 저장합니다. POST /api/chat은 질문을 백엔드에 보내 답변 생성을 요청합니다. 두 POST의 목적은 서로 다릅니다.
+
+“GET은 공개, POST는 비공개”라고 설명하면 정확하지 않습니다. GET 요청도 로그인한 사용자만 접근하게 만들 수 있고, POST 요청도 보호 장치가 없으면 누구나 보낼 수 있습니다. GET의 검색 조건은 URL에 표시되는 경우가 많고, POST의 내용은 보통 요청 본문에 담기므로 주소창에는 보이지 않습니다. 그렇다고 POST 본문이 비밀이 되는 것은 아닙니다. 본인 브라우저 개발자 도구와 서버에서는 요청을 볼 수 있습니다. 비밀번호·토큰·API 키를 URL에 넣지 않습니다. 전송 중 보호에는 HTTPS를 쓰고, 접근 허용 여부는 인증·승인·DB 정책으로 결정합니다.
+
+학생에게 한 문장으로: “GET/POST는 무엇을 할지 나타내는 방식이고, 누가 할 수 있는지는 로그인·승인·권한 정책이 정합니다.”
+
+[2] 같은 DB에서 계정 A와 B의 문서가 다르게 보이는 이유
+두 계정은 서로 다른 Supabase 프로젝트를 쓰는 것이 아닙니다. 하나의 Supabase 프로젝트 안에 Auth 사용자 A와 B가 있고, llm.documents 테이블도 하나입니다. 테이블의 각 행에는 소유자를 뜻하는 user_id가 있습니다. 예를 들어 A가 올린 문서는 user_id=A, B가 올린 문서는 user_id=B로 저장됩니다.
+
+로그인 후 브라우저는 사용자 토큰을 백엔드에 보냅니다. 백엔드는 그 토큰을 Supabase에 전달합니다. Supabase의 RLS 정책은 auth.uid()로 현재 사용자를 확인하고, documents.user_id와 일치하는 행만 읽게 합니다. 이 실습의 SELECT 정책에는 승인된 사용자라는 조건도 포함되어 있습니다.
+
+읽기 정책의 핵심: user_id = auth.uid() AND 승인 사용자 목록에 현재 user_id가 있음
+쓰기 정책의 핵심: 새 문서의 user_id = auth.uid() AND 승인 사용자 목록에 현재 user_id가 있음
+
+중요: 물리적으로 A용 DB와 B용 DB를 따로 만든 것이 아닙니다. 같은 테이블을 공유하지만 사용자별로 볼 수 있는 행이 달라지는 ‘논리적 분리’입니다.
+
+[3] 수업 시연 순서
+1. 한 Supabase 프로젝트에 승인된 A·B 두 계정을 준비합니다. 서로 다른 프로젝트로 시험하면 RLS 확인이 되지 않습니다.
+2. A로 로그인해 A만의 TXT 문서를 올리고 목록에 보이는지 확인합니다.
+3. 로그아웃 후 B로 로그인해 B만의 문서를 올립니다. A의 문서는 보이지 않아야 합니다.
+4. Table Editor에서는 같은 llm.documents 테이블에 A와 B의 행이 모두 있는지 확인합니다. Table Editor는 프로젝트 소유자의 관리자 화면이므로 앱에서의 RLS 결과와 다릅니다.
+5. backend/supabase_store.py의 list_documents()는 user_id 필터를 직접 넣지 않고 사용자 토큰으로 GET을 보냅니다. 따라서 이 실습 코드에서 계정별 결과가 달라지는 까닭을 llm.documents의 RLS SELECT 정책과 연결해서 설명합니다.
+6. 승인하지 않은 세 번째 계정은 로그인해도 /api/chat에서 403을 받는지 확인합니다.
+
+학생에게 한 문장으로: “같은 문서 테이블을 조회하지만, DB가 로그인 사용자에게 허용된 행만 돌려줍니다.”
+
+[4] 흔한 오해 바로잡기
+두 계정 화면이 다르다는 관찰만으로 RLS를 단정할 수는 없습니다. 프론트엔드나 백엔드가 목록을 따로 걸러 보여 줄 수도 있기 때문입니다. 이번 실습에서는 백엔드가 user_id 조건을 직접 붙이지 않는 코드와 DB의 RLS 정책을 함께 보여 주어 원인을 확인합니다. 더 엄밀하게 시험하려면 각 계정의 JWT로 Supabase Data API를 직접 조회하고, 다른 계정의 행이 반환되지 않는지도 확인합니다. 관리자 권한으로 실행하는 SQL Editor 조회는 이 시험을 대신하지 못합니다.
+
+참고: RFC 9110 HTTP Semantics https://www.rfc-editor.org/rfc/rfc9110.html
+참고: OWASP REST Security https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html
+참고: Supabase RLS https://supabase.com/docs/guides/database/postgres/row-level-security
